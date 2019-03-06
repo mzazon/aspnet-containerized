@@ -1,6 +1,6 @@
 ## Build and run the sample with Docker
 
-You can build and run the sample in Docker using the following commands. The instructions assume that you are in the root of the repository.
+You can build and run the sample in Docker using the following commands. The instructions assume that you are in the root of the repository and running Windows Server 2019 for the sample.
 
 ```console
 git clone https://github.com/mzazon/aspnet-containerized
@@ -76,6 +76,8 @@ Successfully tagged aspnetapp:latest
 PS C:\Users\Administrator\Desktop\aspnet-containerized>
 ```
 
+You should see the following when running the application:
+
 ```console
 PS C:\Users\Administrator\Desktop\aspnet-containerized>docker run --name aspnet_sample --rm -it -p 8000:80 aspnetapp
 Service 'w3svc' has been stopped
@@ -83,6 +85,4 @@ Service 'w3svc' has been stopped
 Service 'w3svc' started
 ```
 
-After the application starts, navigate to `http://localhost:8000` in your web browser. You need to navigate to the application via IP address instead of `localhost` for earlier Windows versions, which is demonstrated in [View the ASP.NET app in a running container on Windows](https://github.com/microsoft/dotnet-framework-docker/blob/master/samples/aspnetapp/README.md#view-the-aspnet-app-in-a-running-container-on-windows).
-
-Note: The `-p` argument maps port 8000 on your local machine to port 80 in the container (the form of the port mapping is `host:container`). See the [Docker run reference](https://docs.docker.com/engine/reference/commandline/run/) for more information on commandline parameters.
+After the application starts, navigate to `http://localhost:8000` in your web browser!
