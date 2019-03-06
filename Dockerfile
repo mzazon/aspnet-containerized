@@ -23,3 +23,4 @@ RUN powershell.exe -Command " \
     $sm = Get-IISServerManager; \
     $sm.Sites[\"Default Web Site\"].Bindings.Add(\"*:443:\", $certHash, \"My\", \"0\"); \
     $sm.CommitChanges();"
+EXPOSE 443
