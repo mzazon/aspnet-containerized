@@ -1,22 +1,83 @@
-# ASP.NET Docker Sample
-
-The sample builds the application in a container based on the larger [.NET Framework SDK Docker image](https://hub.docker.com/r/microsoft/dotnet-framework/). It builds the application and then copies the final build result into a Docker image based on the smaller [ASP.NET Runtime Docker image](https://hub.docker.com/r/microsoft/aspnet/). It uses Docker [multi-stage build](https://github.com/dotnet/announcements/issues/18) and [multi-arch tags](https://github.com/dotnet/announcements/issues/14).
-
-This sample requires [Docker 17.06](https://docs.docker.com/release-notes/docker-ce) or later of the [Docker client](https://store.docker.com/editions/community/docker-ce-desktop-windows).
-
 ## Build and run the sample with Docker
 
 You can build and run the sample in Docker using the following commands. The instructions assume that you are in the root of the repository.
 
 ```console
+git clone https://github.com/mzazon/aspnet-containerized
+cd aspnet-containerized
 docker build --pull -t aspnetapp .
 docker run --name aspnet_sample --rm -it -p 8000:80 aspnetapp
 ```
 
-You should see the following console output as the application starts.
+You should see the following console output as the application builds:
 
 ```console
-C:\git\dotnet-framework-docker\samples\aspnetapp>docker run --name aspnet_sample --rm -it -p 8000:80 aspnetapp
+PS C:\Users\Administrator\Desktop\aspnet-containerized> docker build --pull -t aspnetapp .
+Sending build context to Docker daemon  1.718MB
+Step 1/12 : FROM microsoft/dotnet-framework:4.7.2-sdk AS build
+4.7.2-sdk: Pulling from microsoft/dotnet-framework
+65014b3c3121: Already exists
+9e2f2b17be72: Already exists
+e583fcdc4adc: Already exists
+9870ac56a9c6: Pull complete
+Digest: sha256:590e9ddadfdac37e9c2b58f2b33ebbbd4393e8102ec0da783add291ba4ace511
+Status: Downloaded newer image for microsoft/dotnet-framework:4.7.2-sdk
+ ---> 1f9f0521b131
+Step 2/12 : WORKDIR /app
+ ---> Running in 98cc90b9f18d
+Removing intermediate container 98cc90b9f18d
+ ---> 4147b08d4b91
+Step 3/12 : COPY *.sln .
+ ---> 5de8e2c1a9fc
+Step 4/12 : COPY aspnetapp/*.csproj ./aspnetapp/
+ ---> 4a581c162a8d
+Step 5/12 : COPY aspnetapp/*.config ./aspnetapp/
+ ---> d8907420bc30
+Step 6/12 : RUN nuget restore
+ ---> Running in 727b8fc48d3c
+Installed:
+    25 package(s) to packages.config projects
+Removing intermediate container 727b8fc48d3c
+ ---> 98a072d1c02d
+Step 7/12 : COPY aspnetapp/. ./aspnetapp/
+ ---> 0236cfe1993c
+Step 8/12 : WORKDIR /app/aspnetapp
+ ---> Running in ce5ad2bae874
+Removing intermediate container ce5ad2bae874
+ ---> c16dd8b9ed4a
+Step 9/12 : RUN msbuild /p:Configuration=Release
+ ---> Running in d4248ba054e1
+Microsoft (R) Build Engine version 15.9.21+g9802d43bc3 for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Build started 3/6/2019 4:23:00 PM.
+Done Building Project "C:\app\aspnetapp\aspnetapp.csproj" (default targets).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:05.28
+Removing intermediate container d4248ba054e1
+ ---> fc0ebee6c12d
+Step 10/12 : FROM mcr.microsoft.com/dotnet/framework/aspnet:4.7.2 AS runtime
+4.7.2: Pulling from dotnet/framework/aspnet
+Digest: sha256:958114016f74f4ffc10b7f065ca4f340e0a0c390cb276c3659d5f8af43d388c7
+Status: Downloaded newer image for mcr.microsoft.com/dotnet/framework/aspnet:4.7.2
+ ---> c231abd0f40f
+Step 11/12 : WORKDIR /inetpub/wwwroot
+ ---> Running in 545958a64f0a
+Removing intermediate container 545958a64f0a
+ ---> aad0f811675f
+Step 12/12 : COPY --from=build /app/aspnetapp/. ./
+ ---> 2f66925575d3
+Successfully built 2f66925575d3
+Successfully tagged aspnetapp:latest
+PS C:\Users\Administrator\Desktop\aspnet-containerized>
+```
+
+```console
+PS C:\Users\Administrator\Desktop\aspnet-containerized>docker run --name aspnet_sample --rm -it -p 8000:80 aspnetapp
 Service 'w3svc' has been stopped
 
 Service 'w3svc' started
@@ -25,42 +86,3 @@ Service 'w3svc' started
 After the application starts, navigate to `http://localhost:8000` in your web browser. You need to navigate to the application via IP address instead of `localhost` for earlier Windows versions, which is demonstrated in [View the ASP.NET app in a running container on Windows](https://github.com/microsoft/dotnet-framework-docker/blob/master/samples/aspnetapp/README.md#view-the-aspnet-app-in-a-running-container-on-windows).
 
 Note: The `-p` argument maps port 8000 on your local machine to port 80 in the container (the form of the port mapping is `host:container`). See the [Docker run reference](https://docs.docker.com/engine/reference/commandline/run/) for more information on commandline parameters.
-
-Multiple variations of this sample have been provided, as follows. Some of these example Dockerfiles are demonstrated later. Specify an alternate Dockerfile via the `-f` argument.
-
-* [Sample with basic build using multi-arch tags](Dockerfile)
-* [Sample for Windows Server Core LTSC 2016](Dockerfile.windowsservercore-ltsc2016)
-
-### View the ASP.NET app in a running container on Windows
-
-After the application starts, navigate to the container IP (as opposed to http://localhost) in your web browser with the the following instructions:
-
-1. Open up another command prompt.
-1. Run `docker exec aspnet_sample ipconfig`.
-1. Copy the container IP address and paste into your browser (for example, `172.29.245.43`).
-
-See the following example of how to get the IP address of a running Windows container.
-
-```console
-C:\git\dotnet-framework-docker\samples\aspnetapp>docker exec aspnet_sample ipconfig
-
-Windows IP Configuration
-
-
-Ethernet adapter Ethernet:
-
-   Connection-specific DNS Suffix  . : contoso.com
-   Link-local IPv6 Address . . . . . : fe80::1967:6598:124:cfa3%4
-   IPv4 Address. . . . . . . . . . . : 172.29.245.43
-   Subnet Mask . . . . . . . . . . . : 255.255.240.0
-   Default Gateway . . . . . . . . . : 172.29.240.1
-```
-
-Note: [`docker exec`](https://docs.docker.com/engine/reference/commandline/exec/) supports identifying containers with name or hash. The container name is used in the preceding instructions. `docker exec` runs a new command (as opposed to the [entrypoint](https://docs.docker.com/engine/reference/builder/#entrypoint)) in a running container.
-
-Some people prefer using `docker inspect` for this same purpose, as demonstrated in the following example.
-
-```console
-C:\git\dotnet-framework-docker\samples\aspnetapp>docker inspect -f "{{ .NetworkSettings.Networks.nat.IPAddress }}" aspnetcore_sample
-172.25.157.148
-```
