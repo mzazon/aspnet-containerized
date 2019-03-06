@@ -89,7 +89,7 @@ PS C:\Users\Administrator\Desktop\aspnet-containerized>
 You should see the following when running the application:
 
 ```console
-PS C:\Users\Administrator\Desktop\aspnet-containerized>docker run --name aspnet_sample --rm -it -p 8000:80 aspnetapp
+PS C:\Users\Administrator\Desktop\aspnet-containerized>docker run --name aspnet_sample --rm -it -p 443:443 -p 8000:80 aspnetapp
 Service 'w3svc' has been stopped
 
 Service 'w3svc' started
